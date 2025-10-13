@@ -1,3 +1,6 @@
+Почта: andalenikonov@edu.hse.ru
+TG: t.me/nesssy
+
 # Security Policy
 
 - Пожалуйста, **не** храните ключи/секреты в репозитории.

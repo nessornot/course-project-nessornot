@@ -1,53 +1,64 @@
-# SecDev Course Template
+# Idea Kanban
 
-Стартовый шаблон для студенческого репозитория (HSE SecDev 2025).
+Канбан для идей/мини-проектов
 
-## Быстрый старт
+## Содержание
+- [](#)
+  - [Содержание](#содержание)
+  - [Требования окружения](#требования-окружения)
+  - [Установка и запуск](#установка-и-запуск)
+  - [Конфигурация](#конфигурация)
+  - [Тесты и качество](#тесты-и-качество)
+  - [API (если применимо)](#api-если-применимо)
+  - [Архитектура](#архитектура)
+  - [Безопасность](#безопасность)
+  - [Отладка CI](#отладка-ci)
+  - [Лицензия](#лицензия)
+
+## Требования окружения
+- Python >= 3.10, Git, make (опционально).
+
+## Установка и запуск
 ```bash
 python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\Activate.ps1
-pip install -r requirements.txt -r requirements-dev.txt
+pip install -r requirements.txt
 pre-commit install
-uvicorn app.main:app --reload
+pytest -q
+```
+Запуск приложения (если есть):
+```bash
+python -m app
 ```
 
-## Ритуал перед PR
+## Конфигурация
+- Переменные среды: `APP_ENV`, `DB_URL` (пример).
+- Секреты не храним в репозитории - используем GitHub Secrets/Environments.
+
+## Тесты и качество
 ```bash
-ruff check --fix .
-black .
-isort .
+ruff check --fix . && black . && isort .
 pytest -q
 pre-commit run --all-files
 ```
 
-## Тесты
-```bash
-pytest -q
-```
-
-## CI
-В репозитории настроен workflow **CI** (GitHub Actions) — required check для `main`.
-Badge добавится автоматически после загрузки шаблона в GitHub.
-
-## Контейнеры
-```bash
-docker build -t secdev-app .
-docker run --rm -p 8000:8000 secdev-app
-# или
-docker compose up --build
-```
-
-## Эндпойнты
-- `GET /health` → `{"status": "ok"}`
-- `POST /items?name=...` — демо-сущность
-- `GET /items/{id}`
-
-## Формат ошибок
-Все ошибки — JSON-обёртка:
+## API (если применимо)
+- Базовый URL: `/api/v1`
+- Пример: `POST /auth/login` - вход; `GET /items/{id}` - получить сущность.
+- Коды ошибок и формат ответа:
 ```json
-{
-  "error": {"code": "not_found", "message": "item not found"}
-}
+{ "code": "VALIDATION_ERROR", "message": "...", "details": {...} }
 ```
 
-См. также: `SECURITY.md`, `.pre-commit-config.yaml`, `.github/workflows/ci.yml`.
+## Архитектура
+- Слои/модули, зависимости, границы доверия.
+
+## Безопасность
+- Валидация ввода, обработка ошибок, отсутствие IDOR, секреты вне кода.
+
+## Отладка CI
+- Смотрите вкладку Actions → последний Failed шаг.
+- Типовые фиксы: `ruff --fix .`, `black .`, `isort .`, `pytest -q`.
+
+## Лицензия
+MIT
