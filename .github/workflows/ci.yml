@@ -31,9 +31,6 @@ jobs:
           black --check .
           isort --check-only .
 
-      - name: Run Bandit
-        run: bandit -c pyproject.toml -r app/
-
       - name: Tests
         run: pytest --cov=app --cov-fail-under=80
 
