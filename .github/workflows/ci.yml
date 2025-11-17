@@ -31,8 +31,17 @@ jobs:
           black --check .
           isort --check-only .
 
+      - name: Run Bandit
+        run: bandit -c pyproject.toml -r app/
+
       - name: Tests
         run: pytest --cov=app --cov-fail-under=80
 
       - name: Pre-commit (all files)
         run: pre-commit run --all-files
+
+      - name: Run mypy
+        run: mypy app/
+
+      - name: Run flake8
+        run: flake8 app/ --count --show-source --statistics

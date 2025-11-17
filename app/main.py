@@ -7,7 +7,7 @@ from uuid import uuid4
 from fastapi import Depends, FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, constr, field_validator
+from pydantic import BaseModel, Field, field_validator
 from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
@@ -39,7 +39,8 @@ def problem_json_response(
 ):
     correlation_id = str(uuid4())
     logger.error(
-        f"Error {correlation_id}: status={status_code}, title='{title}', detail='{detail}'"
+        f"Error {correlation_id}: status={status_code}, "
+        f"title='{title}', detail='{detail}'"
     )
     return JSONResponse(
         status_code=status_code,
@@ -100,7 +101,7 @@ class CardColumn(str, Enum):
 
 # ADR-001: input data validation
 class CardCreate(BaseModel):
-    title: constr(min_length=3, max_length=255)
+    title: str = Field(min_length=3, max_length=255)
     column: CardColumn
 
     @field_validator("title")
@@ -110,7 +111,7 @@ class CardCreate(BaseModel):
 
 
 class CardUpdate(BaseModel):
-    title: Optional[constr(min_length=3, max_length=255)] = None
+    title: str = Field(min_length=3, max_length=255)
     column: Optional[CardColumn] = None
 
     @field_validator("title")
