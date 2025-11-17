@@ -13,11 +13,7 @@ addopts = "--cov=app --cov-fail-under=80"
 
 [tool.black]
 line-length = 100
-exclude = [
-    ".github",
-    ".venv",
-    "docs",
-]
+exclude = '\.venv|docs'
 
 [tool.mypy]
 python_version = "3.10"
