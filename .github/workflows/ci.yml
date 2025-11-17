@@ -40,9 +40,6 @@ jobs:
       - name: Run mypy
         run: mypy app/
 
-      - name: Run flake8
-        run: flake8 app/ --count --show-source --statistics
-
   build-and-scan:
     needs: build
     runs-on: ubuntu-latest

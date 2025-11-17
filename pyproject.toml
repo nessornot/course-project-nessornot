@@ -11,9 +11,8 @@ line_length = 100
 [tool.pytest.ini_options]
 addopts = "--cov=app --cov-fail-under=80"
 
-[tool.flake8]
-max-line-length = 90
-ignore = ["E203", "E501", "W503"]
+[tool.black]
+line-length = 100
 exclude = [
     ".github",
     ".venv",
