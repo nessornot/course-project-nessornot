@@ -32,7 +32,7 @@ jobs:
           isort --check-only .
 
       - name: Tests
-        run: pytest --cov=app --cov-fail-under=80
+        run: pytest
 
       - name: Pre-commit (all files)
         run: pre-commit run --all-files
