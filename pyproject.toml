@@ -7,3 +7,25 @@ exclude = ["venv",".venv","build","dist"]
 [tool.isort]
 profile = "black"
 line_length = 100
+
+[tool.bandit]
+skips = ["B101"]
+
+[tool.pytest.ini_options]
+addopts = "--cov=app --cov-report=term-missing"
+
+[tool.flake8]
+max-line-length = 90
+ignore = ["E203", "E501", "W503"]
+exclude = [
+    ".github",
+    ".venv",
+    "docs",
+]
+
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
+warn_return_any = true
+warn_unused_ignores = true
+exclude = [".venv",  ".github", "docs"]
