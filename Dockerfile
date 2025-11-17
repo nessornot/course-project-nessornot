@@ -2,6 +2,7 @@ FROM python:3.12-slim AS build
 WORKDIR /app
 COPY requirements.txt ./
 
+# hadolint ignore=DL3013
 RUN --mount=type=cache,target=/root/.cache \
     pip install --no-cache-dir --upgrade pip && \
     pip wheel --wheel-dir=/wheels -r requirements.txt
