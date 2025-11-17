@@ -9,7 +9,7 @@ profile = "black"
 line_length = 100
 
 [tool.pytest.ini_options]
-addopts = "--cov=app --cov-report=term-missing --cov-fail-under=80"
+addopts = "--cov=app --cov-fail-under=80"
 
 [tool.flake8]
 max-line-length = 90
