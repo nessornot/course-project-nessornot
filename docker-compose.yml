@@ -1,0 +1,15 @@
+services:
+  app:
+    build: .
+    image: ${IMAGE_NAME:-idea-kanban-app}:latest
+    ports:
+      - "8080:8080"
+    security_opt:
+      - "no-new-privileges:true"
+    read_only: true
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
