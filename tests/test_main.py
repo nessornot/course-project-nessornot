@@ -26,9 +26,7 @@ def run_around_tests():
 # help functions
 
 
-def assert_rfc7807_problem_detail(
-    response_json: dict, expected_status: int, expected_title: str
-):
+def assert_rfc7807_problem_detail(response_json: dict, expected_status: int, expected_title: str):
     assert "type" in response_json
     assert "title" in response_json
     assert "status" in response_json
@@ -113,9 +111,7 @@ def test_get_another_users_card_fails(client1: TestClient):
 def test_get_non_existent_card_fails(client1: TestClient):
     response = client1.get("/cards/999", headers={"X-User-ID": "user-1"})
     assert response.status_code == 404
-    assert_rfc7807_problem_detail(
-        response.json(), expected_status=404, expected_title="Not Found"
-    )
+    assert_rfc7807_problem_detail(response.json(), expected_status=404, expected_title="Not Found")
 
 
 def test_rate_limit_blocks_flood_requests(client1: TestClient):
