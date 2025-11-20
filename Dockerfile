@@ -12,7 +12,7 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /app
 RUN groupadd --system app && useradd --system --gid app app
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends curl=7.88.1-10+deb12u5 && \
+    apt-get install -y --no-install-recommends curl && \
     rm -rf /var/lib/apt/lists/*
 COPY --from=build /wheels /wheels
 RUN --mount=type=cache,target=/root/.cache \
