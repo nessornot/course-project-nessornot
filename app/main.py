@@ -34,13 +34,10 @@ class AppException(Exception):
 
 
 # helper for generating rfc 7807 answers
-def problem_json_response(
-    status_code: int, title: str, detail: str, type_url: str = "about:blank"
-):
+def problem_json_response(status_code: int, title: str, detail: str, type_url: str = "about:blank"):
     correlation_id = str(uuid4())
     logger.error(
-        f"Error {correlation_id}: status={status_code}, "
-        f"title='{title}', detail='{detail}'"
+        f"Error {correlation_id}: status={status_code}, " f"title='{title}', detail='{detail}'"
     )
     return JSONResponse(
         status_code=status_code,
@@ -173,9 +170,7 @@ def get_cards_list(request: Request, owner_id: str = Depends(get_current_user_id
 
 
 @app.get("/cards/{card_id}", response_model=Card)
-def get_card_by_id(
-    request: Request, card_id: int, owner_id: str = Depends(get_current_user_id)
-):
+def get_card_by_id(request: Request, card_id: int, owner_id: str = Depends(get_current_user_id)):
     card = _DB_CARDS.get(card_id)
     if not card:
         raise AppException(
@@ -193,9 +188,7 @@ def get_card_by_id(
 
 @app.delete("/cards/{card_id}", status_code=status.HTTP_204_NO_CONTENT)
 @limiter.limit("10/minute")
-def delete_card(
-    request: Request, card_id: int, owner_id: str = Depends(get_current_user_id)
-):
+def delete_card(request: Request, card_id: int, owner_id: str = Depends(get_current_user_id)):
     card = _DB_CARDS.get(card_id)
     if not card:
         raise AppException(

@@ -15,3 +15,8 @@ build/
 htmlcov/
 node_modules/
 .env
+*.pytest_cache/
+.idea
+.vscode
+coverage.xml
+reports/
