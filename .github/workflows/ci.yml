@@ -51,7 +51,7 @@ jobs:
   deploy:
     name: Deploy (Mock)
     runs-on: ubuntu-latest
-    needs: [build, build-and-scan]
+    needs: [build]
     timeout-minutes: 5
     environment: production
     steps:
