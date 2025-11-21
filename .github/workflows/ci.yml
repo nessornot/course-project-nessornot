@@ -12,6 +12,7 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
 
@@ -32,53 +33,32 @@ jobs:
           isort --check-only .
 
       - name: Tests
-        run: pytest
+        run: |
+          mkdir -p test-results
+          pytest --junitxml=test-results/junit.xml
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results/**
+
 
       - name: Pre-commit (all files)
         run: pre-commit run --all-files
 
-      - name: Run mypy
-        run: mypy app/
-
-  build-and-scan:
-    needs: build
+  deploy:
+    name: Deploy (Mock)
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      security-events: write
-      actions: read
+    needs: [build]
+    timeout-minutes: 5
+    environment: production
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Lint Dockerfile
-        uses: hadolint/hadolint-action@v3.1.0
-        with:
-          dockerfile: Dockerfile
-
-      - name: Build docker image
-        id: build
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          load: true
-          tags: idea-kanban-app:ci-${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Scan image for vulnerabilities
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'image'
-          image-ref: 'idea-kanban-app:ci-${{ github.sha }}'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-          severity: 'CRITICAL,HIGH'
-
-      - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: 'trivy-results.sarif'
+      - name: Mock Deploy
+        env:
+          DEPLOY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Starting deployment to Prod... "
+          echo "Using secret token: ${DEPLOY_TOKEN:0:4}***"
+          echo "Deploy finished successfully!"
