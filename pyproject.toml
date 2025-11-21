@@ -1,9 +1,23 @@
 [tool.ruff]
 line-length = 100
-select = ["E","F","W","I"]
+lint.select = ["E","F","W","I"]
 target-version = "py311"
 exclude = ["venv",".venv","build","dist"]
 
 [tool.isort]
 profile = "black"
 line_length = 100
+
+[tool.pytest.ini_options]
+addopts = "--cov=app --cov-fail-under=80"
+
+[tool.black]
+line-length = 100
+exclude = '\.venv|docs'
+
+[tool.mypy]
+python_version = "3.10"
+ignore_missing_imports = true
+warn_return_any = true
+warn_unused_ignores = true
+exclude = [".venv",  ".github", "docs"]
