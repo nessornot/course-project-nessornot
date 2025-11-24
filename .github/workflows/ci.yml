@@ -1,32 +1,45 @@
-name: CI
+name: CI/CD
+
 on:
-  pull_request:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
+
 permissions:
   contents: read
+
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  build:
+  test:
+    name: Test (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
 
-      - uses: actions/setup-python@v5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ matrix.python-version }}
           cache: "pip"
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt -r requirements-dev.txt
+          pip install ruff black isort pytest build
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
 
-      - name: Lint & Format
+      - name: Lint
         run: |
           ruff check --output-format=github .
           black --check .
@@ -34,31 +47,58 @@ jobs:
 
       - name: Tests
         run: |
-          mkdir -p test-results
-          pytest --junitxml=test-results/junit.xml
+          mkdir -p reports
+          # C1: Unit-тесты проходят
+          pytest -q --maxfail=1 --disable-warnings --junitxml=reports/junit.xml
 
-      - name: Upload Test Results
+      - name: Upload Test Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results
-          path: test-results/**
+          name: test-report-${{ matrix.python-version }}
+          path: reports/**
 
+  build:
+    name: Build Package
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
-      - name: Pre-commit (all files)
-        run: pre-commit run --all-files
+      - name: Build Wheel and Sdist
+        run: |
+          pip install build
+          python -m build
+
+      - name: Upload Dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-package-dist
+          path: dist/
 
   deploy:
     name: Deploy (Mock)
-    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [build]
-    timeout-minutes: 5
+    runs-on: ubuntu-latest
     environment: production
+
     steps:
-      - name: Mock Deploy
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: python-package-dist
+          path: dist
+
+      - name: Simulate Deploy
         env:
           DEPLOY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "Starting deployment to Prod... "
-          echo "Using secret token: ${DEPLOY_TOKEN:0:4}***"
+          echo "Found artifacts to deploy:"
+          ls -l dist/
+          echo "Starting deployment to Production..."
+          echo "Authenticating with token ending in ***${DEPLOY_TOKEN: -4}"
           echo "Deploy finished successfully!"
