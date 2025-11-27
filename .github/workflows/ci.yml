@@ -48,7 +48,6 @@ jobs:
       - name: Tests
         run: |
           mkdir -p reports
-          # C1: Unit-тесты проходят
           pytest -q --maxfail=1 --disable-warnings --junitxml=reports/junit.xml
 
       - name: Upload Test Report
@@ -84,7 +83,10 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [build]
     runs-on: ubuntu-latest
-    environment: production
+
+    environment:
+      name: production
+      url: ${{ vars.PROD_HOST_URL }}
 
     steps:
       - name: Download Artifacts
@@ -93,12 +95,14 @@ jobs:
           name: python-package-dist
           path: dist
 
-      - name: Simulate Deploy
+      - name: Simulate Deploy with Secrets
         env:
-          DEPLOY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TARGET_HOST: ${{ vars.PROD_HOST_URL }}
+          API_KEY: ${{ secrets.PROD_DEPLOY_KEY }}
         run: |
           echo "Found artifacts to deploy:"
           ls -l dist/
-          echo "Starting deployment to Production..."
-          echo "Authenticating with token ending in ***${DEPLOY_TOKEN: -4}"
-          echo "Deploy finished successfully!"
+
+          echo "Start deploying to production host: $TARGET_HOST"
+          echo "Auth with custom key ending in: ...${API_KEY: -4}"
+          echo "Deploy finished successfully"
