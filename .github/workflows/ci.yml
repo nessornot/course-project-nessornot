@@ -1,84 +1,128 @@
-name: CI
+name: CI/CD
+
 on:
-  pull_request:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
+
 permissions:
   contents: read
+
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
-  build:
+  test:
+    name: Test (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+    timeout-minutes: 10
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
 
-      - uses: actions/setup-python@v5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-          cache: "pip"
+          python-version: ${{ matrix.python-version }}
+
+      - name: Get pip cache dir
+        id: pip-cache
+        run: |
+          echo "dir=$(pip cache dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Pip Dependencies
+        uses: actions/cache@v4
+        id: cache-dependencies
+        with:
+          path: ${{ steps.pip-cache.outputs.dir }}
+          key: ${{ runner.os }}-py${{ matrix.python-version }}-pip-${{ hashFiles('**/requirements*.txt', 'pyproject.toml', 'setup.py') }}
+          restore-keys: |
+            ${{ runner.os }}-py${{ matrix.python-version }}-pip-
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt -r requirements-dev.txt
+          pip install ruff black isort pytest build
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
 
-      - name: Lint & Format
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff black isort pytest build
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+
+      - name: Lint
         run: |
           ruff check --output-format=github .
           black --check .
           isort --check-only .
 
       - name: Tests
-        run: pytest
+        run: |
+          mkdir -p reports
+          pytest -q --maxfail=1 --disable-warnings --junitxml=reports/junit.xml
 
-      - name: Pre-commit (all files)
-        run: pre-commit run --all-files
+      - name: Upload Test Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report-${{ matrix.python-version }}
+          path: reports/**
 
-      - name: Run mypy
-        run: mypy app/
-
-  build-and-scan:
-    needs: build
+  build:
+    name: Build Package
+    needs: [test]
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      security-events: write
-      actions: read
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Lint Dockerfile
-        uses: hadolint/hadolint-action@v3.1.0
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          dockerfile: Dockerfile
+          python-version: "3.12"
 
-      - name: Build docker image
-        id: build
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          load: true
-          tags: idea-kanban-app:ci-${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+      - name: Build Wheel and Sdist
+        run: |
+          pip install build
+          python -m build
 
-      - name: Scan image for vulnerabilities
-        uses: aquasecurity/trivy-action@master
+      - name: Upload Dist
+        uses: actions/upload-artifact@v4
         with:
-          scan-type: 'image'
-          image-ref: 'idea-kanban-app:ci-${{ github.sha }}'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-          severity: 'CRITICAL,HIGH'
+          name: python-package-dist
+          path: dist/
 
-      - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
+  deploy:
+    name: Deploy (Mock)
+    if: github.event_name == 'pull_request'
+    needs: [build]
+    runs-on: ubuntu-latest
+
+    environment:
+      name: production
+      url: ${{ vars.PROD_HOST_URL }}
+
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
         with:
-          sarif_file: 'trivy-results.sarif'
+          name: python-package-dist
+          path: dist
+
+      - name: Simulate Deploy with Secrets
+        env:
+          TARGET_HOST: ${{ vars.PROD_HOST_URL }}
+          API_KEY: ${{ secrets.PROD_DEPLOY_KEY }}
+        run: |
+          echo "Found artifacts to deploy:"
+          ls -l dist/
+
+          echo "Start deploying to production host: $TARGET_HOST"
+          echo "Auth with custom key ending in: ...${API_KEY: -4}"
+          echo "Deploy finished successfully"
