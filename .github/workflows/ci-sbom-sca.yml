@@ -7,6 +7,11 @@ on:
       - "**/*.py"
       - "requirements*.txt"
       - ".github/workflows/ci-sbom-sca.yml"
+  pull_request:
+    paths:
+      - "**/*.py"
+      - "requirements*.txt"
+      - ".github/workflows/ci-sbom-sca.yml"
 
 permissions:
   contents: read
@@ -19,7 +24,6 @@ jobs:
   sbom_sca:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    if: github.event_name == 'pull_request'
 
     steps:
       - name: Checkout
