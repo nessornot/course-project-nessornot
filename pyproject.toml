@@ -1,3 +1,16 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "secdev-project"
+version = "0.1.0"
+description = "Course Project"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+exclude = ["policy*", "EVIDENCE*", "tests*"]
+
 [tool.ruff]
 line-length = 100
 lint.select = ["E","F","W","I"]
