@@ -1,0 +1,22 @@
+[
+ {
+  "Description": "Identified a HashiCorp Terraform password field, risking unauthorized infrastructure configuration and security breaches.",
+  "StartLine": 27,
+  "EndLine": 28,
+  "StartColumn": 1,
+  "EndColumn": 1,
+  "Match": "password = \"hardcoded_value\"",
+  "Secret": "\"hardcoded_value\"",
+  "File": "app/main.py",
+  "SymlinkFile": "",
+  "Commit": "923c76225d872677542d1596dec863cdb74dd2b9",
+  "Entropy": 3.4548223,
+  "Author": "nessornot",
+  "Email": "nessornot404@gmail.com",
+  "Date": "2025-12-07T16:21:35Z",
+  "Message": "p10: sast, gitleaks",
+  "Tags": [],
+  "RuleID": "hashicorp-tf-password",
+  "Fingerprint": "923c76225d872677542d1596dec863cdb74dd2b9:app/main.py:hashicorp-tf-password:27"
+ }
+]
