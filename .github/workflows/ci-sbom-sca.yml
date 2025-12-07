@@ -7,11 +7,13 @@ on:
       - "**/*.py"
       - "requirements*.txt"
       - ".github/workflows/ci-sbom-sca.yml"
+      - "pyproject.toml"
   pull_request:
     paths:
       - "**/*.py"
       - "requirements*.txt"
       - ".github/workflows/ci-sbom-sca.yml"
+      - "pyproject.toml"
 
 permissions:
   contents: read
@@ -34,18 +36,27 @@ jobs:
 
       - name: Generate SBOM (Syft CycloneDX)
         run: |
-          docker run --rm -v $PWD:/work -w /work anchore/syft:latest \
-            packages dir:. -o cyclonedx-json > EVIDENCE/P09/sbom.json
+          docker run --rm -v $PWD:/work -w /work anchore/syft:v1.11.0 \
+            packages dir:. -o cyclonedx-json -q > EVIDENCE/P09/sbom.json
 
       - name: SCA Scan (Grype)
         run: |
           set -e
-          docker run --rm -v $PWD:/work -w /work anchore/grype:latest \
+          docker run --rm -v $PWD:/work -w /work anchore/grype:v0.79.0 \
             sbom:/work/EVIDENCE/P09/sbom.json -o json > EVIDENCE/P09/sca_report.json
 
-          echo "# SCA summary" > EVIDENCE/P09/sca_summary.md
-          jq '[.matches[].vulnerability.severity] | group_by(.) | map({(.[0]): length}) | add' \
-            EVIDENCE/P09/sca_report.json >> EVIDENCE/P09/sca_summary.md || true
+          echo "# SCA Summary" > EVIDENCE/P09/sca_summary.md
+          echo "" >> EVIDENCE/P09/sca_summary.md
+          echo "- Date: $(date)" >> EVIDENCE/P09/sca_summary.md
+          echo "- Commit: \`$GITHUB_SHA\`" >> EVIDENCE/P09/sca_summary.md
+          echo "- Run Link: [View Action]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)" >> EVIDENCE/P09/sca_summary.md
+          echo "" >> EVIDENCE/P09/sca_summary.md
+          echo "## Vulnerabilities by Severity" >> EVIDENCE/P09/sca_summary.md
+
+          jq -r '(.matches // []) | map(.vulnerability.severity) | group_by(.) | map("- **" + .[0] + "**: " + (length|tostring)) | .[]' \
+            EVIDENCE/P09/sca_report.json >> EVIDENCE/P09/sca_summary.md || echo "_No vulnerabilities found or parsing error._" >> EVIDENCE/P09/sca_summary.md
+
+          cat EVIDENCE/P09/sca_summary.md
 
       - name: Upload SBOM/SCA evidence
         if: always()
