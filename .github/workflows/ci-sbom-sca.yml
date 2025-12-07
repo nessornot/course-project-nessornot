@@ -34,10 +34,10 @@ jobs:
       - name: Ensure evidence dirs
         run: mkdir -p EVIDENCE/P09
 
-      - name: Generate SBOM (Syft CycloneDX)
+      - name: Generate SBOM (Syft Native)
         run: |
           docker run --rm -v $PWD:/work -w /work anchore/syft:v1.11.0 \
-            packages dir:. -o cyclonedx-json -q > EVIDENCE/P09/sbom.json
+            scan dir:. --exclude "./.venv" --exclude "./.git" -o syft-json=EVIDENCE/P09/sbom.json
 
       - name: SCA Scan (Grype)
         run: |
