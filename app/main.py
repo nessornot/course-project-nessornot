@@ -24,6 +24,8 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_middleware(SlowAPIMiddleware)
 
+password = "hardcoded_value"
+
 
 # --- ADR-002: RFC 7807 ---
 class AppException(Exception):
