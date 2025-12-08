@@ -36,13 +36,13 @@ jobs:
 
       - name: Generate SBOM (Syft Native)
         run: |
-          docker run --rm -v $PWD:/work -w /work anchore/syft:v1.11.0 \
+          docker run --rm -v $PWD:/work -w /work anchore/syft:v1.38.0 \
             scan dir:. --exclude "./.venv" --exclude "./.git" -o syft-json=EVIDENCE/P09/sbom.json
 
       - name: SCA Scan (Grype)
         run: |
           set -e
-          docker run --rm -v $PWD:/work -w /work anchore/grype:v0.79.0 \
+          docker run --rm -v $PWD:/work -w /work anchore/grype:v0.104.1 \
             sbom:/work/EVIDENCE/P09/sbom.json -o json > EVIDENCE/P09/sca_report.json
 
           echo "# SCA Summary" > EVIDENCE/P09/sca_summary.md
