@@ -1,0 +1,9 @@
+waivers:
+  - id: "CVE-2023-32681"
+    package: "urllib3"
+    version: "1.26.15"
+    severity: "High"
+    reason: "Уязвимость приходит транзитивно через requests; проект использует urllib3 только в dev-инструментах, не в прод-цепочке. Обновление блокируется зависимостью внешнего SDK."
+    issue: "https://github.com/urllib3/urllib3/issues/3020"
+    expires_at: "2025-12-31"
+    approved_by: "tutor@example.org"
