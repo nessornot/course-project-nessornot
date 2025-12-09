@@ -1,0 +1,12 @@
+rules:
+  - id: python-fastapi-debug-true
+    languages: [python]
+    message: "Обнаружен запуск приложения с debug=True. Это может привести к утечке данных в prod."
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: fastapi.FastAPI(..., debug=True, ...)
+          - pattern: uvicorn.run(..., debug=True, ...)
+    metadata:
+      category: security
+      cwe: "CWE-489: Active Debug Code"

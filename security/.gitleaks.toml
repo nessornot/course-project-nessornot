@@ -1,0 +1,16 @@
+title = "Project Gitleaks Config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Global allowlist"
+paths = [
+  "EVIDENCE/.*",
+  "poetry.lock",
+  "uv.lock",
+  "package-lock.json"
+]
+regexes = [
+  '''EXAMPLE_KEY_DO_NOT_USE''',
+]
