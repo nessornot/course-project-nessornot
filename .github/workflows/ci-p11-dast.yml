@@ -47,7 +47,7 @@ jobs:
         run: |
           docker run --rm --network host -u 0 -v $PWD:/zap/wrk zaproxy/zap-stable \
             zap-baseline.py \
-              -t http://localhost:8080 \
+              -t http://localhost:8080/docs \
               -r zap_baseline.html \
               -J zap_baseline.json \
               -d || true
