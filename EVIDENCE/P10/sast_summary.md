@@ -1,9 +1,15 @@
-# SAST & Secrets Summary (Local Run)
-- **Date:** Sun Dec  7 19:52:27 MSK 2025
-- **Commit:** `a0e633a`
+# Security Report
+> **Status:** Generated Locally
+- **Date:** Mon Dec 15 22:39:48 MSK 2025
+- **Commit:** `e0eba72`
 
-## 1. Gitleaks (Secrets)
-Found **1** potential secrets.
+## Gitleaks (Secrets)
+**No secrets detected.**
 
-## 2. Semgrep (SAST)
-Found **0** findings.
+## Semgrep (SAST)
+**No SAST issues detected.**
+
+---
+### Next Steps
+1. **Review:** Check JSON/SARIF artifacts for line numbers.
+2. **Action:** Fix High severity issues, rotate leaked keys.
