@@ -1,0 +1,7 @@
+quiet: false
+compact: true
+framework:
+  - kubernetes
+  - dockerfile
+  - secrets
+skip-check: []
