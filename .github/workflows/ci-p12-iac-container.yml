@@ -1,0 +1,69 @@
+name: Security - IaC & Container (P12)
+
+on:
+  push:
+    branches: [ main, p12-iac-container ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  security-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create Evidence Directory
+        run: mkdir -p EVIDENCE/P12
+
+      - name: Run Hadolint (Dockerfile)
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+          config: security/hadolint.yaml
+          no-fail: true
+          format: json
+          output-file: EVIDENCE/P12/hadolint_report.json
+        continue-on-error: true
+
+      - name: Run Checkov (IaC)
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: iac/
+          config_file: security/checkov.yaml
+          output_format: json
+          output_file_path: EVIDENCE/P12
+          soft_fail: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+      - name: Rename Checkov Report
+        run: |
+          mv EVIDENCE/P12/results_json.json EVIDENCE/P12/checkov_report.json || true
+
+      - name: Build Docker Image
+        run: docker build -t idea-kanban:${{ github.sha }} .
+
+      - name: Run Trivy (Container Image)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'idea-kanban:${{ github.sha }}'
+          format: 'json'
+          output: 'EVIDENCE/P12/trivy_report.json'
+          severity: 'CRITICAL,HIGH'
+          trivy-config: security/trivy.yaml
+          exit-code: '0'
+        continue-on-error: true
+
+      - name: Upload Security Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: P12-Security-Reports
+          path: EVIDENCE/P12/*.json
+          retention-days: 5
